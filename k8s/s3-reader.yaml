@@ -1,0 +1,25 @@
+# Pod Identity demo: this pod reads S3 with no keys.
+# The service account name must match the association in s3-pod-access.tf.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: s3-reader
+  namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: s3-reader
+  namespace: default
+spec:
+  serviceAccountName: s3-reader
+  restartPolicy: Never
+  containers:
+    - name: aws-cli
+      image: public.ecr.aws/aws-cli/aws-cli:latest
+      command: ["sh", "-c"]
+      args:
+        - |
+          echo "Who am I:"; aws sts get-caller-identity
+          echo "Reading the file:"; aws s3 cp s3://eks-lab-demo-448270596538/hello.txt -
+          echo "Trying another action (should be DENIED):"; aws s3 ls || true
